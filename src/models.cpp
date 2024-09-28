@@ -4,7 +4,6 @@
 // Error function approximation (erf)
 double erf(double x)
 {
-    // Coefficients for the approximation
     const double a1 = 0.254829592;
     const double a2 = -0.284496736;
     const double a3 = 1.421413741;
