@@ -1,5 +1,6 @@
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
 
 // Error function approximation (erf)
 double erf(double x)
@@ -72,6 +73,48 @@ double barone_adesi_whaley_american_option_price(double S, double K, double T, d
     {
         throw std::invalid_argument("option_type must be 'calls' or 'puts'.");
     }
+}
+
+// Calculate delta for American options
+double calculate_delta(double S, double K, double T, double r, double sigma, double q = 0.0, const std::string &option_type = "calls")
+{
+    double d1 = (std::log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / (sigma * std::sqrt(T));
+
+    if (option_type == "calls")
+    {
+        return normal_cdf(d1);
+    }
+    else if (option_type == "puts")
+    {
+        return normal_cdf(d1) - 1.0;
+    }
+    else
+    {
+        throw std::invalid_argument("option_type must be 'calls' or 'puts'.");
+    }
+}
+
+// Calculate gamma for American options
+double calculate_gamma(double S, double K, double T, double r, double sigma, double q = 0.0, const std::string &option_type = "calls")
+{
+    double h = 1e-4;
+
+    double price_plus = barone_adesi_whaley_american_option_price(S + h, K, T, r, sigma, q, option_type);
+    double price = barone_adesi_whaley_american_option_price(S, K, T, r, sigma, q, option_type);
+    double price_minus = barone_adesi_whaley_american_option_price(S - h, K, T, r, sigma, q, option_type);
+
+    return (price_plus - 2 * price + price_minus) / (h * h);
+}
+
+// Calculate vega for American options
+double calculate_vega(double S, double K, double T, double r, double sigma, double q = 0.0, const std::string &option_type = "calls")
+{
+    double h = 1e-4;
+
+    double price_plus = barone_adesi_whaley_american_option_price(S, K, T, r, sigma + h, q, option_type);
+    double price_minus = barone_adesi_whaley_american_option_price(S, K, T, r, sigma - h, q, option_type);
+
+    return (price_plus - price_minus) / (2 * h);
 }
 
 // Calculate implied volatility using the Barone-Adesi Whaley model
