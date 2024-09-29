@@ -2,12 +2,30 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <cstdlib>
 #include "data.h"
 #include "filters.h"
 #include "models.h"
+#include "load_env.h"
 
 int main()
 {
+    load_env_file(".env");
+
+    const char *schwab_api_key = std::getenv("SCHWAB_API_KEY");
+    const char *schwab_secret = std::getenv("SCHWAB_SECRET");
+    const char *callback_url = std::getenv("SCHWAB_CALLBACK_URL");
+    const char *account_hash = std::getenv("SCHWAB_ACCOUNT_HASH");
+    const char *fred_api_key = std::getenv("FRED_API_KEY");
+
+    if (!schwab_api_key || !schwab_secret || !callback_url || !account_hash || !fred_api_key)
+    {
+        std::cerr << "Error: One or more environment variables are missing." << std::endl;
+        return 1;
+    }
+
+    std::cout << "Schwab API Key: " << schwab_api_key << std::endl;
+
     initialize_quote_data();
 
     double S = 566.345;
