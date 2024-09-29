@@ -183,16 +183,18 @@ double calculate_vega(double S, double K, double T, double r, double sigma, doub
  * @param option_type Option type ('calls' or 'puts'). Defaults to 'calls'.
  * @param max_iterations Maximum number of iterations for the bisection method. Defaults to 100.
  * @param tolerance Convergence tolerance. Defaults to 1e-8.
+ * @param initial_guess Optional initial guess for implied volatility. Defaults to (lower_vol + upper_vol) / 2.
  * @return double The implied volatility.
  */
-double calculate_implied_volatility_baw(double option_price, double S, double K, double r, double T, double q = 0.0, const std::string &option_type = "calls", int max_iterations = 100, double tolerance = 1e-8)
+double calculate_implied_volatility_baw(double option_price, double S, double K, double r, double T, double q = 0.0, const std::string &option_type = "calls", int max_iterations = 100, double tolerance = 1e-8, double initial_guess = -1.0)
 {
     double lower_vol = 1e-5;
     double upper_vol = 10.0;
 
+    double mid_vol = (initial_guess > 0) ? initial_guess : (lower_vol + upper_vol) / 2;
+
     for (int i = 0; i < max_iterations; ++i)
     {
-        double mid_vol = (lower_vol + upper_vol) / 2;
         double price = barone_adesi_whaley_american_option_price(S, K, T, r, mid_vol, q, option_type);
 
         if (std::fabs(price - option_price) < tolerance)
@@ -213,6 +215,8 @@ double calculate_implied_volatility_baw(double option_price, double S, double K,
         {
             break;
         }
+
+        mid_vol = (lower_vol + upper_vol) / 2;
     }
 
     return (lower_vol + upper_vol) / 2;
