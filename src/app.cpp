@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "data.h"
 #include "filters.h"
+#include "models.h"
 
 int main()
 {
@@ -36,6 +37,16 @@ int main()
     }
 
     filtered_data = filter_by_bid_price(filtered_data);
+
+    for (auto &pair : filtered_data)
+    {
+        double K = pair.first;
+        QuoteData &data = pair.second;
+
+        data.bid_IV = calculate_implied_volatility_baw(data.bid, S, K, r, T, q, option_type);
+        data.ask_IV = calculate_implied_volatility_baw(data.ask, S, K, r, T, q, option_type);
+        data.mid_IV = calculate_implied_volatility_baw(data.mid, S, K, r, T, q, option_type);
+    }
 
     for (const auto &pair : filtered_data)
     {
