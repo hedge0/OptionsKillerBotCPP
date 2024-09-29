@@ -10,6 +10,7 @@
 #include "load_env.h"
 #include "nlohmann/json.hpp"
 #include "fred.h"
+#include <chrono>
 
 int main()
 {
@@ -23,6 +24,8 @@ int main()
 
     fetch_risk_free_rate(fred_api_key);
     initialize_quote_data();
+
+    auto start = std::chrono::high_resolution_clock::now();
 
     double S = 566.345;
     double T = 0.015708354371353372;
@@ -61,6 +64,15 @@ int main()
     }
 
     filtered_data = filter_by_mid_iv(filtered_data);
+
+    // End timing
+    auto end = std::chrono::high_resolution_clock::now();
+
+    // Calculate the duration
+    std::chrono::duration<double> duration = end - start;
+
+    // Print the duration in seconds
+    std::cout << "PerformTest took " << duration.count() << " seconds." << std::endl;
 
     for (const auto &pair : filtered_data)
     {

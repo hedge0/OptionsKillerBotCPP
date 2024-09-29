@@ -1,8 +1,6 @@
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -Iinclude
-
-# Add curl and math library flags
-LDFLAGS = -lcurl -lm
+CXXFLAGS = -Wall -std=c++17 -Iinclude -O3 -march=native -flto -fomit-frame-pointer -ffast-math
+LDFLAGS = -lcurl -lm -flto
 
 SRC_DIR = src
 OBJ_DIR = build
@@ -11,6 +9,9 @@ BIN_DIR = bin
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 EXEC = $(BIN_DIR)/app.exe
+
+# Enable parallel compilation by default
+MAKEFLAGS += -j$(shell nproc)
 
 all: $(EXEC)
 
