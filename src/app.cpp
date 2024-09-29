@@ -28,7 +28,6 @@ int main()
     double T = 0.015708354371353372;
     double q = 0.0035192;
     std::string option_type = "calls";
-    double strike_filter_value = 1.5;
 
     std::vector<double> strikes;
     for (const auto &pair : quote_data)
@@ -38,7 +37,7 @@ int main()
 
     std::sort(strikes.begin(), strikes.end());
 
-    std::vector<double> filtered_strikes = filter_strikes(strikes, S, strike_filter_value);
+    std::vector<double> filtered_strikes = filter_strikes(strikes, S, 1.5);
 
     std::map<double, QuoteData> filtered_data;
     for (double strike : filtered_strikes)
