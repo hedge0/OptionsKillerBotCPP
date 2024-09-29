@@ -1,20 +1,54 @@
 #include <iostream>
-#include <string>
-#include "models.h"
+#include <map>
+#include <vector>
+#include <algorithm>
+#include "data.h"
+#include "filters.h"
 
 int main()
 {
-    double option_price = 10.0;
-    double S = 100.0;
-    double K = 100.0;
-    double r = 0.05;
-    double T = 1.0;
-    double q = 0.0;
+    initialize_quote_data();
+
+    double S = 566.345;
+    double T = 0.015708354371353372;
+    double r = 0.0483;
+    double q = 0.0035192;
     std::string option_type = "calls";
+    double strike_filter_value = 1.5;
 
-    double implied_vol = calculate_implied_volatility_baw(option_price, S, K, r, T, q, option_type);
+    std::vector<double> strikes;
+    for (const auto &pair : quote_data)
+    {
+        strikes.push_back(pair.first);
+    }
 
-    std::cout << "Implied Volatility: " << implied_vol << std::endl;
+    std::sort(strikes.begin(), strikes.end());
+
+    std::vector<double> filtered_strikes = filter_strikes(strikes, S, strike_filter_value);
+
+    std::map<double, QuoteData> filtered_data;
+    for (double strike : filtered_strikes)
+    {
+        if (quote_data.find(strike) != quote_data.end())
+        {
+            filtered_data[strike] = quote_data[strike];
+        }
+    }
+
+    filtered_data = filter_by_bid_price(filtered_data);
+
+    for (const auto &pair : filtered_data)
+    {
+        std::cout << "Strike: " << pair.first
+                  << ", Bid: " << pair.second.bid
+                  << ", Ask: " << pair.second.ask
+                  << ", Mid: " << pair.second.mid
+                  << ", Open Interest: " << pair.second.open_interest
+                  << ", Bid IV: " << pair.second.bid_IV
+                  << ", Ask IV: " << pair.second.ask_IV
+                  << ", Mid IV: " << pair.second.mid_IV
+                  << std::endl;
+    }
 
     return 0;
 }

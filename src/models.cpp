@@ -2,7 +2,12 @@
 #include <stdexcept>
 #include <iostream>
 
-// Error function approximation (erf)
+/**
+ * @brief Approximation of the error function (erf) using a high-precision method.
+ *
+ * @param x The input value for which the error function is to be calculated.
+ * @return double The calculated error function value.
+ */
 double erf(double x)
 {
     const double a1 = 0.254829592;
@@ -21,13 +26,29 @@ double erf(double x)
     return sign * y;
 }
 
-// Normal CDF using erf approximation
+/**
+ * @brief Approximation of the cumulative distribution function (CDF) for a standard normal distribution.
+ *
+ * @param x The input value for which the CDF is to be calculated.
+ * @return double The CDF value.
+ */
 double normal_cdf(double x)
 {
     return 0.5 * (1.0 + erf(x / std::sqrt(2.0)));
 }
 
-// Barone-Adesi Whaley American option pricing model
+/**
+ * @brief Calculate the price of an American option using the Barone-Adesi Whaley model with dividends.
+ *
+ * @param S Current stock price.
+ * @param K Strike price of the option.
+ * @param T Time to expiration in years.
+ * @param r Risk-free interest rate.
+ * @param sigma Implied volatility.
+ * @param q Continuous dividend yield (default is 0.0).
+ * @param option_type Type of option ('calls' or 'puts'). Defaults to 'calls'.
+ * @return double The calculated option price.
+ */
 double barone_adesi_whaley_american_option_price(double S, double K, double T, double r, double sigma, double q = 0.0, const std::string &option_type = "calls")
 {
     double M = 2 * (r - q) / (sigma * sigma);
@@ -75,7 +96,18 @@ double barone_adesi_whaley_american_option_price(double S, double K, double T, d
     }
 }
 
-// Calculate delta for American options
+/**
+ * @brief Calculate the delta of an American option using the Black-Scholes formula with custom normal CDF and dividend yield.
+ *
+ * @param S Current stock price.
+ * @param K Strike price.
+ * @param T Time to maturity (in years).
+ * @param r Risk-free interest rate (as a decimal).
+ * @param sigma Volatility of the underlying asset.
+ * @param q Continuous dividend yield (default is 0.0).
+ * @param option_type Option type ('calls' or 'puts').
+ * @return double The delta of the option.
+ */
 double calculate_delta(double S, double K, double T, double r, double sigma, double q = 0.0, const std::string &option_type = "calls")
 {
     double d1 = (std::log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / (sigma * std::sqrt(T));
@@ -94,7 +126,18 @@ double calculate_delta(double S, double K, double T, double r, double sigma, dou
     }
 }
 
-// Calculate gamma for American options
+/**
+ * @brief Calculate the gamma of an American option using numerical differentiation.
+ *
+ * @param S Current stock price.
+ * @param K Strike price.
+ * @param T Time to maturity (in years).
+ * @param r Risk-free interest rate (as a decimal).
+ * @param sigma Volatility of the underlying asset.
+ * @param q Continuous dividend yield (default is 0.0).
+ * @param option_type Option type ('calls' or 'puts').
+ * @return double The gamma of the option.
+ */
 double calculate_gamma(double S, double K, double T, double r, double sigma, double q = 0.0, const std::string &option_type = "calls")
 {
     double h = 1e-4;
@@ -106,7 +149,18 @@ double calculate_gamma(double S, double K, double T, double r, double sigma, dou
     return (price_plus - 2 * price + price_minus) / (h * h);
 }
 
-// Calculate vega for American options
+/**
+ * @brief Calculate the vega of an American option using numerical differentiation.
+ *
+ * @param S Current stock price.
+ * @param K Strike price.
+ * @param T Time to maturity (in years).
+ * @param r Risk-free interest rate (as a decimal).
+ * @param sigma Volatility of the underlying asset.
+ * @param q Continuous dividend yield (default is 0.0).
+ * @param option_type Option type ('calls' or 'puts').
+ * @return double The vega of the option.
+ */
 double calculate_vega(double S, double K, double T, double r, double sigma, double q = 0.0, const std::string &option_type = "calls")
 {
     double h = 1e-4;
@@ -117,7 +171,20 @@ double calculate_vega(double S, double K, double T, double r, double sigma, doub
     return (price_plus - price_minus) / (2 * h);
 }
 
-// Calculate implied volatility using the Barone-Adesi Whaley model
+/**
+ * @brief Calculate the implied volatility using the Barone-Adesi Whaley model with dividends.
+ *
+ * @param option_price Observed option price (mid-price).
+ * @param S Current stock price.
+ * @param K Strike price of the option.
+ * @param r Risk-free interest rate.
+ * @param T Time to expiration in years.
+ * @param q Continuous dividend yield (default is 0.0).
+ * @param option_type Option type ('calls' or 'puts'). Defaults to 'calls'.
+ * @param max_iterations Maximum number of iterations for the bisection method. Defaults to 100.
+ * @param tolerance Convergence tolerance. Defaults to 1e-8.
+ * @return double The implied volatility.
+ */
 double calculate_implied_volatility_baw(double option_price, double S, double K, double r, double T, double q = 0.0, const std::string &option_type = "calls", int max_iterations = 100, double tolerance = 1e-8)
 {
     double lower_vol = 1e-5;
