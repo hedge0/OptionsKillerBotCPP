@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -Iinclude -O3 -march=native -flto -fomit-frame-pointer -ffast-math
+CXXFLAGS = -Wall -std=c++17 -Iinclude -I/mingw64/include/eigen3 -O3 -march=native -flto -fomit-frame-pointer -ffast-math
 LDFLAGS = -lcurl -lm -flto
 
 SRC_DIR = src
