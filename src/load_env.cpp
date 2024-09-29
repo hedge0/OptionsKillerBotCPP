@@ -5,6 +5,12 @@
 #include <cstring>
 #include "load_env.h"
 
+const char *schwab_api_key = nullptr;
+const char *schwab_secret = nullptr;
+const char *callback_url = nullptr;
+const char *account_hash = nullptr;
+const char *fred_api_key = nullptr;
+
 #ifdef __MINGW32__
 extern "C" int putenv(char *);
 #endif
@@ -52,6 +58,16 @@ void load_env_file(const std::string &file_path)
             // For Unix/Linux/Mac systems, use setenv
             setenv(key.c_str(), value.c_str(), 1);
 #endif
+            if (key == "SCHWAB_API_KEY")
+                schwab_api_key = getenv("SCHWAB_API_KEY");
+            else if (key == "SCHWAB_SECRET")
+                schwab_secret = getenv("SCHWAB_SECRET");
+            else if (key == "SCHWAB_CALLBACK_URL")
+                callback_url = getenv("SCHWAB_CALLBACK_URL");
+            else if (key == "SCHWAB_ACCOUNT_HASH")
+                account_hash = getenv("SCHWAB_ACCOUNT_HASH");
+            else if (key == "FRED_API_KEY")
+                fred_api_key = getenv("FRED_API_KEY");
         }
     }
 
