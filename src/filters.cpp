@@ -74,3 +74,24 @@ std::map<double, QuoteData> filter_by_bid_price(const std::map<double, QuoteData
 
     return filtered_data;
 }
+
+/**
+ * @brief Filter the map of QuoteData, removing entries where the mid_IV is <= 0.005.
+ *
+ * @param data A map of strike prices to QuoteData objects.
+ * @return std::map<double, QuoteData> A filtered map containing only entries where mid_IV is greater than 0.005.
+ */
+std::map<double, QuoteData> filter_by_mid_iv(const std::map<double, QuoteData> &data)
+{
+    std::map<double, QuoteData> filtered_data;
+
+    for (const auto &pair : data)
+    {
+        if (pair.second.mid_IV > 0.005)
+        {
+            filtered_data[pair.first] = pair.second;
+        }
+    }
+
+    return filtered_data;
+}

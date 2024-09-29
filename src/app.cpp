@@ -48,6 +48,8 @@ int main()
         data.mid_IV = calculate_implied_volatility_baw(data.mid, S, K, r, T, q, option_type);
     }
 
+    filtered_data = filter_by_mid_iv(filtered_data);
+
     for (const auto &pair : filtered_data)
     {
         std::cout << "Strike: " << pair.first
