@@ -5,15 +5,30 @@
 #include <cstring>
 #include "load_env.h"
 
+/**
+ * @brief Global variable to store the Schwab API key.
+ */
 const char *schwab_api_key = nullptr;
-const char *schwab_secret = nullptr;
-const char *callback_url = nullptr;
-const char *account_hash = nullptr;
-const char *fred_api_key = nullptr;
 
-#ifdef __MINGW32__
-extern "C" int putenv(char *);
-#endif
+/**
+ * @brief Global variable to store the Schwab secret.
+ */
+const char *schwab_secret = nullptr;
+
+/**
+ * @brief Global variable to store the callback URL for Schwab authentication.
+ */
+const char *callback_url = nullptr;
+
+/**
+ * @brief Global variable to store the account hash for Schwab.
+ */
+const char *account_hash = nullptr;
+
+/**
+ * @brief Global variable to store the FRED API key.
+ */
+const char *fred_api_key = nullptr;
 
 /**
  * @brief Loads environment variables from a .env file.
@@ -50,7 +65,7 @@ void load_env_file(const std::string &file_path)
             std::string env_var = key + "=" + value;
 
 #ifdef _WIN32
-            // For MinGW and MSVC, use putenv (requires dynamically allocated memory for MinGW)
+            // For MinGW and MSVC, use putenv
             char *env_var_cstr = new char[env_var.size() + 1];
             std::strcpy(env_var_cstr, env_var.c_str());
             putenv(env_var_cstr);
