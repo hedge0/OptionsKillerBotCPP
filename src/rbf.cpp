@@ -12,7 +12,7 @@
  */
 double multiquadric_rbf(double r, double epsilon)
 {
-    return std::sqrt(r * r + epsilon * epsilon);
+    return std::sqrt((r / epsilon) * (r / epsilon) + 1);
 }
 
 /**
@@ -24,11 +24,11 @@ double multiquadric_rbf(double r, double epsilon)
  */
 Eigen::MatrixXd compute_rbf_matrix(const Eigen::VectorXd &k, double epsilon)
 {
-    int n = k.size();
+    Eigen::Index n = k.size();
     Eigen::MatrixXd A(n, n);
-    for (int i = 0; i < n; ++i)
+    for (Eigen::Index i = 0; i < n; ++i)
     {
-        for (int j = 0; j < n; ++j)
+        for (Eigen::Index j = 0; j < n; ++j)
         {
             double r = std::abs(k[i] - k[j]);
             A(i, j) = multiquadric_rbf(r, epsilon);
@@ -38,7 +38,7 @@ Eigen::MatrixXd compute_rbf_matrix(const Eigen::VectorXd &k, double epsilon)
 }
 
 /**
- * @brief Interpolate new points using RBF interpolation.
+ * @brief Interpolate new points using RBF interpolation with multiquadric kernel.
  *
  * @param new_points The vector of points at which interpolation is performed.
  * @param k The original input points.
@@ -51,14 +51,14 @@ Eigen::VectorXd interpolate_rbf(const Eigen::VectorXd &new_points,
                                 const Eigen::VectorXd &w,
                                 double epsilon)
 {
-    int m = new_points.size();
-    int n = k.size();
+    Eigen::Index m = new_points.size();
+    Eigen::Index n = k.size();
     Eigen::VectorXd interpolated_values(m);
 
-    for (int i = 0; i < m; ++i)
+    for (Eigen::Index i = 0; i < m; ++i)
     {
         double value = 0.0;
-        for (int j = 0; j < n; ++j)
+        for (Eigen::Index j = 0; j < n; ++j)
         {
             double r = std::abs(new_points[i] - k[j]);
             value += w[j] * multiquadric_rbf(r, epsilon);
