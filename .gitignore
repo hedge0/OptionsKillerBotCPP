@@ -33,3 +33,5 @@
 
 .vscode
 .env
+bin/
+build/
