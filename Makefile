@@ -1,6 +1,12 @@
-CXX = g++
-CXXFLAGS = -Wall -std=c++17 -Iinclude -I/mingw64/include/eigen3 -O3 -march=native -flto -fomit-frame-pointer -ffast-math
+# Use Clang for compilation
+CXX = clang++
+CXXFLAGS = -Wall -std=c++17 -Iinclude -O3 -march=native -flto -fomit-frame-pointer -ffast-math
 LDFLAGS = -lcurl -lm -flto
+
+# vcpkg include and library paths
+VCPKG_ROOT = C:/vcpkg
+CXXFLAGS += -I$(VCPKG_ROOT)/installed/x64-windows/include
+LDFLAGS += -L$(VCPKG_ROOT)/installed/x64-windows/lib
 
 SRC_DIR = src
 OBJ_DIR = build
