@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <thread>
-#include <fstream> // For writing CSV
+#include <fstream>
 
 #include <curl/curl.h>
 #include <Eigen/Dense>
@@ -23,7 +23,7 @@
 void write_csv(const std::string &filename, const Eigen::VectorXd &x_vals, const Eigen::VectorXd &y_vals)
 {
     std::ofstream file(filename);
-    file << "Strike,IV\n"; // CSV header
+    file << "Strike,IV\n";
     for (Eigen::Index i = 0; i < x_vals.size(); ++i)
     {
         file << x_vals[i] << "," << y_vals[i] << "\n";
@@ -105,7 +105,7 @@ void perform_option_interpolation()
 
         std::cout << "Data written to CSV files successfully." << std::endl;
 
-        break; // Exit the loop after one iteration
+        break; // TEMPORARY BREAK
         std::this_thread::sleep_for(std::chrono::seconds(100));
     }
 }
