@@ -16,24 +16,9 @@
 #include <Eigen/Dense>
 #include "rbf.h"
 
-int main()
+// Function for option interpolation
+void perform_option_interpolation()
 {
-    load_env_file(".env");
-    load_json_file("stocks.json");
-
-    if (!schwab_api_key || !schwab_secret || !callback_url || !account_hash || !fred_api_key)
-    {
-        std::cerr << "Error: One or more environment variables are missing." << std::endl;
-        return 1;
-    }
-
-    for (const auto &stock : stocks_data)
-    {
-        std::cout << "Ticker: " << stock.at("ticker") << ", Date: " << stock.at("date") << ", Option Type: " << stock.at("option_type") << std::endl;
-    }
-
-    fetch_risk_free_rate(fred_api_key);
-
     while (true)
     {
         initialize_quote_data();
@@ -82,29 +67,47 @@ int main()
             filtered_strikes.push_back(pair.first);
         }
 
-        // Now proceed with interpolation
         Eigen::VectorXd strike_eigen(filtered_strikes.size());
         Eigen::VectorXd mid_iv_eigen(filtered_strikes.size());
 
-        // Populate Eigen Vectors
         for (size_t i = 0; i < filtered_strikes.size(); ++i)
         {
             strike_eigen[i] = filtered_strikes[i];
             mid_iv_eigen[i] = filtered_data[filtered_strikes[i]].mid_IV;
         }
 
-        // Define new points for interpolation
-        Eigen::VectorXd new_strikes = Eigen::VectorXd::LinSpaced(800, filtered_strikes.front(), filtered_strikes.back());
+        Eigen::VectorXd new_strikes = Eigen::VectorXd::LinSpaced(800, strike_eigen(0), strike_eigen(strike_eigen.size() - 1));
         double epsilon = 0.5;
         double smoothing = 1e-10;
 
-        // Perform RBF interpolation
         Eigen::VectorXd interpolated_iv = rbf_interpolation(strike_eigen, mid_iv_eigen, new_strikes, epsilon, smoothing);
 
-        // Sleep for 100000 seconds before the next iteration
+        // Sleep for 100 seconds before the next iteration
         break;
-        std::this_thread::sleep_for(std::chrono::seconds(100000));
+        std::this_thread::sleep_for(std::chrono::seconds(100));
     }
+}
+
+int main()
+{
+    load_env_file(".env");
+    load_json_file("stocks.json");
+
+    if (!schwab_api_key || !schwab_secret || !callback_url || !account_hash || !fred_api_key)
+    {
+        std::cerr << "Error: One or more environment variables are missing." << std::endl;
+        return 1;
+    }
+
+    for (const auto &stock : stocks_data)
+    {
+        std::cout << "Ticker: " << stock.at("ticker") << ", Date: " << stock.at("date") << ", Option Type: " << stock.at("option_type") << std::endl;
+    }
+
+    fetch_risk_free_rate(fred_api_key);
+
+    // Call the function that runs the while loop and interpolation logic
+    perform_option_interpolation();
 
     return 0;
 }
