@@ -10,6 +10,7 @@
 #include "filters.h"
 #include "models.h"
 #include "load_env.h"
+#include "load_json.h"
 #include "nlohmann/json.hpp"
 #include "fred.h"
 #include <Eigen/Dense>
@@ -18,11 +19,17 @@
 int main()
 {
     load_env_file(".env");
+    load_json_file("stocks.json");
 
     if (!schwab_api_key || !schwab_secret || !callback_url || !account_hash || !fred_api_key)
     {
         std::cerr << "Error: One or more environment variables are missing." << std::endl;
         return 1;
+    }
+
+    for (const auto &stock : stocks_data)
+    {
+        std::cout << "Ticker: " << stock.at("ticker") << ", Date: " << stock.at("date") << ", Option Type: " << stock.at("option_type") << std::endl;
     }
 
     fetch_risk_free_rate(fred_api_key);
@@ -57,7 +64,6 @@ int main()
 
         filtered_data = filter_by_bid_price(filtered_data);
 
-        // Calculating implied volatilities
         for (auto &pair : filtered_data)
         {
             double K = pair.first;
@@ -95,7 +101,8 @@ int main()
         // Perform RBF interpolation
         Eigen::VectorXd interpolated_iv = rbf_interpolation(strike_eigen, mid_iv_eigen, new_strikes, epsilon, smoothing);
 
-        // Sleep for 1000 seconds before the next iteration
+        // Sleep for 100000 seconds before the next iteration
+        break;
         std::this_thread::sleep_for(std::chrono::seconds(100000));
     }
 
