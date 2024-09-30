@@ -33,7 +33,7 @@ const char *fred_api_key = nullptr;
 /**
  * @brief Loads environment variables from a .env file.
  *
- * This function reads a .env file and sets environment variables using either `putenv` on Windows systems
+ * This function reads a .env file and sets environment variables using either `_putenv` on Windows systems
  * or `setenv` on Unix-based systems. It supports comment lines (starting with '#') and trims whitespace
  * around keys and values.
  *
@@ -65,24 +65,48 @@ void load_env_file(const std::string &file_path)
             std::string env_var = key + "=" + value;
 
 #ifdef _WIN32
-            // For MinGW and MSVC, use putenv
-            char *env_var_cstr = new char[env_var.size() + 1];
-            std::strcpy(env_var_cstr, env_var.c_str());
-            putenv(env_var_cstr);
+            // For Windows, use _putenv
+            _putenv(env_var.c_str());
 #else
             // For Unix/Linux/Mac systems, use setenv
             setenv(key.c_str(), value.c_str(), 1);
 #endif
+            // Safely retrieve environment variables using _dupenv_s
             if (key == "SCHWAB_API_KEY")
-                schwab_api_key = getenv("SCHWAB_API_KEY");
+            {
+                char *buffer = nullptr;
+                size_t len;
+                _dupenv_s(&buffer, &len, "SCHWAB_API_KEY");
+                schwab_api_key = buffer;
+            }
             else if (key == "SCHWAB_SECRET")
-                schwab_secret = getenv("SCHWAB_SECRET");
+            {
+                char *buffer = nullptr;
+                size_t len;
+                _dupenv_s(&buffer, &len, "SCHWAB_SECRET");
+                schwab_secret = buffer;
+            }
             else if (key == "SCHWAB_CALLBACK_URL")
-                callback_url = getenv("SCHWAB_CALLBACK_URL");
+            {
+                char *buffer = nullptr;
+                size_t len;
+                _dupenv_s(&buffer, &len, "SCHWAB_CALLBACK_URL");
+                callback_url = buffer;
+            }
             else if (key == "SCHWAB_ACCOUNT_HASH")
-                account_hash = getenv("SCHWAB_ACCOUNT_HASH");
+            {
+                char *buffer = nullptr;
+                size_t len;
+                _dupenv_s(&buffer, &len, "SCHWAB_ACCOUNT_HASH");
+                account_hash = buffer;
+            }
             else if (key == "FRED_API_KEY")
-                fred_api_key = getenv("FRED_API_KEY");
+            {
+                char *buffer = nullptr;
+                size_t len;
+                _dupenv_s(&buffer, &len, "FRED_API_KEY");
+                fred_api_key = buffer;
+            }
         }
     }
 

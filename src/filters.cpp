@@ -10,7 +10,7 @@
  */
 double calculate_standard_deviation(const std::vector<double> &strikes)
 {
-    int n = strikes.size();
+    size_t n = strikes.size();
     double mean = std::accumulate(strikes.begin(), strikes.end(), 0.0) / n;
 
     double variance_sum = std::accumulate(strikes.begin(), strikes.end(), 0.0,
