@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <thread>
+#include <fstream> // For writing CSV
 
 #include <curl/curl.h>
 #include <Eigen/Dense>
@@ -17,6 +18,18 @@
 #include "load_json.h"
 #include "fred.h"
 #include "rbf.h"
+
+// Function to write CSV files
+void write_csv(const std::string &filename, const Eigen::VectorXd &x_vals, const Eigen::VectorXd &y_vals)
+{
+    std::ofstream file(filename);
+    file << "Strike,IV\n"; // CSV header
+    for (Eigen::Index i = 0; i < x_vals.size(); ++i)
+    {
+        file << x_vals[i] << "," << y_vals[i] << "\n";
+    }
+    file.close();
+}
 
 // Function for option interpolation
 void perform_option_interpolation()
@@ -62,13 +75,13 @@ void perform_option_interpolation()
         }
 
         filtered_data = filter_by_mid_iv(filtered_data);
-
         filtered_strikes.clear();
         for (const auto &pair : filtered_data)
         {
             filtered_strikes.push_back(pair.first);
         }
 
+        // Prepare Eigen vectors for original strikes and mid IVs
         Eigen::VectorXd strike_eigen(filtered_strikes.size());
         Eigen::VectorXd mid_iv_eigen(filtered_strikes.size());
 
@@ -84,8 +97,15 @@ void perform_option_interpolation()
 
         Eigen::VectorXd interpolated_iv = rbf_interpolation(strike_eigen, mid_iv_eigen, new_strikes, epsilon, smoothing);
 
-        // Sleep for 100 seconds before the next iteration
-        break;
+        // Write original strikes and mid IVs to CSV
+        write_csv("original_strikes_mid_iv.csv", strike_eigen, mid_iv_eigen);
+
+        // Write new strikes and interpolated IVs to CSV
+        write_csv("interpolated_strikes_iv.csv", new_strikes, interpolated_iv);
+
+        std::cout << "Data written to CSV files successfully." << std::endl;
+
+        break; // Exit the loop after one iteration
         std::this_thread::sleep_for(std::chrono::seconds(100));
     }
 }
@@ -93,13 +113,14 @@ void perform_option_interpolation()
 int main()
 {
     load_env_file(".env");
-    load_json_file("stocks.json");
 
     if (!schwab_api_key || !schwab_secret || !callback_url || !account_hash || !fred_api_key)
     {
         std::cerr << "Error: One or more environment variables are missing." << std::endl;
         return 1;
     }
+
+    load_json_file("stocks.json");
 
     for (const auto &stock : stocks_data)
     {
