@@ -5,15 +5,17 @@
 #include <cstdlib>
 #include <chrono>
 #include <thread>
+
 #include <curl/curl.h>
+#include <Eigen/Dense>
+#include "nlohmann/json.hpp"
+
 #include "data.h"
 #include "filters.h"
 #include "models.h"
 #include "load_env.h"
 #include "load_json.h"
-#include "nlohmann/json.hpp"
 #include "fred.h"
-#include <Eigen/Dense>
 #include "rbf.h"
 
 // Function for option interpolation
