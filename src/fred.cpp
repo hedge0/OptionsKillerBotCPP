@@ -26,6 +26,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::stri
     }
     catch (std::bad_alloc &e)
     {
+        std::cerr << "Memory allocation failed: " << e.what() << std::endl;
         return 0;
     }
     return newLength;

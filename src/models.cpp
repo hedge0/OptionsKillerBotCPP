@@ -8,7 +8,7 @@
  * @param x The input value for which the error function is to be calculated.
  * @return double The calculated error function value.
  */
-double erf(double x)
+double approx_erf(double x)
 {
     const double a1 = 0.254829592;
     const double a2 = -0.284496736;
@@ -34,7 +34,7 @@ double erf(double x)
  */
 double normal_cdf(double x)
 {
-    return 0.5 * (1.0 + erf(x / std::sqrt(2.0)));
+    return 0.5 * (1.0 + approx_erf(x / std::sqrt(2.0)));
 }
 
 /**
