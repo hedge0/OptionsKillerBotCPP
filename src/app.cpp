@@ -51,7 +51,7 @@ void perform_option_interpolation()
 
         std::sort(strikes.begin(), strikes.end());
 
-        std::vector<double> filtered_strikes = filter_strikes(strikes, S, 1.5);
+        std::vector<double> filtered_strikes = filter_strikes(strikes, S, 1.25);
 
         std::map<double, QuoteData> filtered_data;
         for (double strike : filtered_strikes)
@@ -81,32 +81,35 @@ void perform_option_interpolation()
             filtered_strikes.push_back(pair.first);
         }
 
-        // Prepare Eigen vectors for original strikes and mid IVs
-        Eigen::VectorXd strike_eigen(filtered_strikes.size());
-        Eigen::VectorXd mid_iv_eigen(filtered_strikes.size());
-
-        for (size_t i = 0; i < filtered_strikes.size(); ++i)
+        if (filtered_strikes.size() >= 20)
         {
-            strike_eigen[i] = filtered_strikes[i];
-            mid_iv_eigen[i] = filtered_data[filtered_strikes[i]].mid_IV;
+            // Prepare Eigen vectors for original strikes and mid IVs
+            Eigen::VectorXd strike_eigen(filtered_strikes.size());
+            Eigen::VectorXd mid_iv_eigen(filtered_strikes.size());
+
+            for (size_t i = 0; i < filtered_strikes.size(); ++i)
+            {
+                strike_eigen[i] = filtered_strikes[i];
+                mid_iv_eigen[i] = filtered_data[filtered_strikes[i]].mid_IV;
+            }
+
+            // Generate new strikes for interpolation
+            Eigen::VectorXd new_strikes = Eigen::VectorXd::LinSpaced(800, strike_eigen(0), strike_eigen(strike_eigen.size() - 1));
+
+            double epsilon = 0.5;
+            double smoothing = 1e-10;
+
+            // Perform RBF interpolation
+            Eigen::VectorXd interpolated_iv = rbf_interpolation(strike_eigen, mid_iv_eigen, new_strikes, epsilon, smoothing);
+
+            write_csv("original_strikes_mid_iv.csv", strike_eigen, mid_iv_eigen);
+            write_csv("interpolated_strikes_iv.csv", new_strikes, interpolated_iv);
+
+            std::cout << "Data written to CSV files successfully." << std::endl;
         }
 
-        Eigen::VectorXd new_strikes = Eigen::VectorXd::LinSpaced(800, strike_eigen(0), strike_eigen(strike_eigen.size() - 1));
-        double epsilon = 0.5;
-        double smoothing = 1e-10;
-
-        Eigen::VectorXd interpolated_iv = rbf_interpolation(strike_eigen, mid_iv_eigen, new_strikes, epsilon, smoothing);
-
-        // Write original strikes and mid IVs to CSV
-        write_csv("original_strikes_mid_iv.csv", strike_eigen, mid_iv_eigen);
-
-        // Write new strikes and interpolated IVs to CSV
-        write_csv("interpolated_strikes_iv.csv", new_strikes, interpolated_iv);
-
-        std::cout << "Data written to CSV files successfully." << std::endl;
-
         break; // TEMPORARY BREAK
-        std::this_thread::sleep_for(std::chrono::seconds(100));
+        std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 }
 
