@@ -17,7 +17,6 @@
 #include "load_env.h"
 #include "load_json.h"
 #include "fred.h"
-#include "rbf.h"
 
 // Function to write CSV files
 void write_csv(const std::string &filename, const Eigen::VectorXd &x_vals, const Eigen::VectorXd &y_vals)
@@ -83,27 +82,36 @@ void perform_option_interpolation()
 
         if (filtered_strikes.size() >= 20)
         {
-            // Prepare Eigen vectors for original strikes and mid IVs
-            Eigen::VectorXd strike_eigen(filtered_strikes.size());
+            // Prepare Eigen vectors for original strikes, mid IVs, bid IVs, and ask IVs
+            Eigen::VectorXd x_eigen(filtered_strikes.size());
             Eigen::VectorXd mid_iv_eigen(filtered_strikes.size());
+            Eigen::VectorXd bid_iv_eigen(filtered_strikes.size());
+            Eigen::VectorXd ask_iv_eigen(filtered_strikes.size());
 
             for (size_t i = 0; i < filtered_strikes.size(); ++i)
             {
-                strike_eigen[i] = filtered_strikes[i];
+                x_eigen[i] = filtered_strikes[i];
                 mid_iv_eigen[i] = filtered_data[filtered_strikes[i]].mid_IV;
+                bid_iv_eigen[i] = filtered_data[filtered_strikes[i]].bid_IV;
+                ask_iv_eigen[i] = filtered_data[filtered_strikes[i]].ask_IV;
             }
 
-            // Generate new strikes for interpolation
-            Eigen::VectorXd new_strikes = Eigen::VectorXd::LinSpaced(800, strike_eigen(0), strike_eigen(strike_eigen.size() - 1));
+            double x_min = x_eigen.minCoeff();
+            double x_max = x_eigen.maxCoeff();
 
-            double epsilon = 0.5;
-            double smoothing = 1e-10;
+            // Prepare Eigen vector for normalized x values
+            Eigen::VectorXd x_normalized_eigen(filtered_strikes.size());
 
-            // Perform RBF interpolation
-            Eigen::VectorXd interpolated_iv = rbf_interpolation(strike_eigen, mid_iv_eigen, new_strikes, epsilon, smoothing);
+            for (Eigen::Index i = 0; i < x_eigen.size(); ++i)
+            {
+                x_normalized_eigen[i] = (x_eigen[i] - x_min) / (x_max - x_min);
+                x_normalized_eigen[i] += 0.5;
+            }
 
-            write_csv("original_strikes_mid_iv.csv", strike_eigen, mid_iv_eigen);
-            write_csv("interpolated_strikes_iv.csv", new_strikes, interpolated_iv);
+            Eigen::VectorXd log_x_normalized_eigen = x_normalized_eigen.array().log();
+
+            // Write the x and mid iv data to CSV (only these)
+            write_csv("original_strikes_mid_iv.csv", x_eigen, mid_iv_eigen);
 
             std::cout << "Data written to CSV files successfully." << std::endl;
         }
