@@ -17,6 +17,7 @@
 #include "load_env.h"
 #include "load_json.h"
 #include "fred.h"
+#include "interpolations.h"
 
 // Function to write CSV files
 void write_csv(const std::string &filename, const Eigen::VectorXd &x_vals, const Eigen::VectorXd &y_vals)
@@ -94,6 +95,8 @@ void perform_option_interpolation()
                 ask_iv_eigen[i] = filtered_data[filtered_strikes[i]].ask_IV;
             }
 
+            Eigen::VectorXd fine_x = Eigen::VectorXd::LinSpaced(800, x_eigen.minCoeff(), x_eigen.maxCoeff());
+
             double x_min = x_eigen.minCoeff();
             double x_max = x_eigen.maxCoeff();
 
@@ -108,8 +111,15 @@ void perform_option_interpolation()
 
             Eigen::VectorXd log_x_normalized_eigen = x_normalized_eigen.array().log();
 
+            // RBF Model
+            auto interpolator = rbf_model(log_x_normalized_eigen, mid_iv_eigen, 0.5);
+            Eigen::VectorXd fine_x_normalized = Eigen::VectorXd::LinSpaced(800, x_normalized_eigen.minCoeff(), x_normalized_eigen.maxCoeff());
+            Eigen::VectorXd log_fine_x_normalized = fine_x_normalized.array().log();
+            Eigen::VectorXd interpolated_y = interpolator(log_fine_x_normalized);
+
             // Write the x and mid iv data to CSV (only these)
             write_csv("original_strikes_mid_iv.csv", x_eigen, mid_iv_eigen);
+            write_csv("interpolated_strikes_iv.csv", fine_x, interpolated_y);
 
             std::cout << "Data written to CSV files successfully." << std::endl;
         }
