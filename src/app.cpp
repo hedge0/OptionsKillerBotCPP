@@ -49,9 +49,7 @@ void perform_option_interpolation()
         }
 
         std::sort(strikes.begin(), strikes.end());
-
         std::vector<double> filtered_strikes = filter_strikes(strikes, S, 1.25);
-
         std::map<double, QuoteData> filtered_data;
         for (double strike : filtered_strikes)
         {
