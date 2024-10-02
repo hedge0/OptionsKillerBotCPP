@@ -5,7 +5,7 @@
         "option_type": "calls",
         "min_overpriced": 0.25,
         "min_underpriced": 0.05,
-        "min_oi": 100
+        "min_oi": 100.0
     },
     {
         "ticker": "amzn",
@@ -13,6 +13,6 @@
         "option_type": "calls",
         "min_overpriced": 0.25,
         "min_underpriced": 0.05,
-        "min_oi": 100
+        "min_oi": 100.0
     }
 ]

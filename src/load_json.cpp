@@ -44,7 +44,7 @@ void load_json_file(const std::string &file_path)
             new_node->option_type = item.at("option_type");
             new_node->min_overpriced = std::to_string(item.at("min_overpriced").get<double>());
             new_node->min_underpriced = std::to_string(item.at("min_underpriced").get<double>());
-            new_node->min_oi = std::to_string(item.at("min_oi").get<int>());
+            new_node->min_oi = std::to_string(item.at("min_oi").get<double>());
             new_node->next = nullptr;
 
             if (stocks_data_head == nullptr)
