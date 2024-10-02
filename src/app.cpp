@@ -136,11 +136,14 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
             filtered_open_interest_eigen[i] = open_interest_eigen[idx];
         }
 
-        // Write the x and mid iv data to CSV (only these)
-        write_csv("original_strikes_mid_iv.csv", filtered_x_eigen, filtered_mid_iv_eigen);
-        write_csv("interpolated_strikes_iv.csv", fine_x, interpolated_y);
+        if (filtered_x_eigen.size() >= 2)
+        {
+            // Write the x and mid iv data to CSV (only these)
+            write_csv("original_strikes_mid_iv.csv", filtered_x_eigen, filtered_mid_iv_eigen);
+            write_csv("interpolated_strikes_iv.csv", fine_x, interpolated_y);
 
-        std::cout << "Data written to CSV files successfully." << std::endl;
+            std::cout << "Data written to CSV files successfully." << std::endl;
+        }
     }
 }
 
