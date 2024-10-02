@@ -32,14 +32,20 @@ void write_csv(const std::string &filename, const Eigen::VectorXd &x_vals, const
 }
 
 // Function for option interpolation
-void perform_option_interpolation()
+void perform_option_interpolation(const std::string &ticker, const std::string &date, const std::string &option_type, double min_overpriced, double min_underpriced, int min_oi)
 {
+    std::cout << "Ticker: " << ticker << std::endl;
+    std::cout << "Date: " << date << std::endl;
+    std::cout << "Option Type: " << option_type << std::endl;
+    std::cout << "Min Overpriced: " << min_overpriced << std::endl;
+    std::cout << "Min Underpriced: " << min_underpriced << std::endl;
+    std::cout << "Min OI: " << min_oi << std::endl;
+
     initialize_quote_data();
 
     double S = 566.345;
     double T = 0.015708354371353372;
     double q = 0.0035192;
-    std::string option_type = "calls";
 
     std::vector<double> strikes;
     for (const auto &pair : quote_data)
@@ -79,7 +85,6 @@ void perform_option_interpolation()
 
     if (filtered_strikes.size() >= 20)
     {
-        // Prepare Eigen vectors for original strikes, mid IVs, bid IVs, and ask IVs
         Eigen::VectorXd x_eigen(filtered_strikes.size());
         Eigen::VectorXd mid_iv_eigen(filtered_strikes.size());
         Eigen::VectorXd bid_iv_eigen(filtered_strikes.size());
@@ -144,26 +149,21 @@ int main()
         return 1;
     }
 
-    do
+    while (true)
     {
-        // Print current stock data
-        std::cout << "Ticker: " << current_node->ticker << std::endl;
-        std::cout << "Date: " << current_node->date << std::endl;
-        std::cout << "Option Type: " << current_node->option_type << std::endl;
-        std::cout << "Min Overpriced: " << current_node->min_overpriced << std::endl;
-        std::cout << "Min Underpriced: " << current_node->min_underpriced << std::endl;
-        std::cout << "Min OI: " << current_node->min_oi << std::endl;
+        perform_option_interpolation(
+            current_node->ticker,
+            current_node->date,
+            current_node->option_type,
+            std::stod(current_node->min_overpriced),
+            std::stod(current_node->min_underpriced),
+            std::stoi(current_node->min_oi));
 
-        // Perform the option interpolation
-        perform_option_interpolation();
-
-        // Move to the next node in the circular linked list
         current_node = current_node->next;
 
-        // Sleep for 3 seconds (optional, adjust as needed)
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-
-    } while (current_node != stocks_data_head); // Continue looping until we return to the head of the list
+        break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+    }
 
     return 0;
 }

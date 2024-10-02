@@ -6,6 +6,7 @@
 struct StockNode
 {
     std::string ticker;
+    std::string date_index;
     std::string date;
     std::string option_type;
     std::string min_overpriced;

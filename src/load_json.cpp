@@ -39,7 +39,8 @@ void load_json_file(const std::string &file_path)
         {
             StockNode *new_node = new StockNode;
             new_node->ticker = item.at("ticker");
-            new_node->date = std::to_string(item.at("date").get<int>());
+            new_node->date_index = std::to_string(item.at("date").get<int>());
+            new_node->date = "null";
             new_node->option_type = item.at("option_type");
             new_node->min_overpriced = std::to_string(item.at("min_overpriced").get<double>());
             new_node->min_underpriced = std::to_string(item.at("min_underpriced").get<double>());
