@@ -2,6 +2,17 @@
     {
         "ticker": "meta",
         "date": 0,
-        "option_type": "calls"
+        "option_type": "calls",
+        "min_overpriced": 0.25,
+        "min_underpriced": 0.05,
+        "min_oi": 100
+    },
+    {
+        "ticker": "amzn",
+        "date": 0,
+        "option_type": "calls",
+        "min_overpriced": 0.25,
+        "min_underpriced": 0.05,
+        "min_oi": 100
     }
 ]
