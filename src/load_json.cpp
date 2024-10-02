@@ -1,22 +1,21 @@
 #include <iostream>
 #include <fstream>
-#include <map>
-#include <vector>
 #include <string>
 #include "nlohmann/json.hpp"
 #include "load_json.h"
 
 /**
- * @brief Global variable to store JSON data from stocks.json.
+ * @brief Global pointer to the head of the circular linked list.
  */
-std::vector<std::map<std::string, std::string>> stocks_data;
+StockNode *stocks_data_head = nullptr;
 
 /**
- * @brief Loads a JSON file into memory and stores its data in a global variable.
+ * @brief Loads a JSON file into memory and stores its data in a circular linked list.
  *
  * This function reads a JSON file, parses its content, and stores the resulting
- * data into a global variable `stocks_data`. Each JSON object is mapped to a
- * dictionary containing "ticker", "date", and "option_type" keys.
+ * data into a circular linked list. Each JSON object is mapped to a node in the
+ * linked list containing "ticker", "date", "option_type", "min_overpriced",
+ * "min_underpriced", and "min_oi" keys.
  *
  * @param file_path The path to the JSON file to be loaded.
  */
@@ -34,14 +33,34 @@ void load_json_file(const std::string &file_path)
         nlohmann::json json_data;
         file >> json_data;
 
+        StockNode *tail = nullptr;
+
         for (const auto &item : json_data)
         {
-            std::map<std::string, std::string> stock_entry;
-            stock_entry["ticker"] = item.at("ticker");
-            stock_entry["date"] = std::to_string(item.at("date").get<int>());
-            stock_entry["option_type"] = item.at("option_type");
+            StockNode *new_node = new StockNode;
+            new_node->ticker = item.at("ticker");
+            new_node->date = std::to_string(item.at("date").get<int>());
+            new_node->option_type = item.at("option_type");
+            new_node->min_overpriced = std::to_string(item.at("min_overpriced").get<double>());
+            new_node->min_underpriced = std::to_string(item.at("min_underpriced").get<double>());
+            new_node->min_oi = std::to_string(item.at("min_oi").get<int>());
+            new_node->next = nullptr;
 
-            stocks_data.push_back(stock_entry);
+            if (stocks_data_head == nullptr)
+            {
+                stocks_data_head = new_node;
+                tail = new_node;
+            }
+            else
+            {
+                tail->next = new_node;
+                tail = new_node;
+            }
+        }
+
+        if (tail != nullptr)
+        {
+            tail->next = stocks_data_head;
         }
     }
     catch (const std::exception &e)
