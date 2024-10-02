@@ -31,6 +31,11 @@ const char *account_hash = nullptr;
 const char *fred_api_key = nullptr;
 
 /**
+ * @brief Global variable to store the DRY_RUN flag.
+ */
+bool dry_run = true;
+
+/**
  * @brief Loads environment variables from a .env file.
  *
  * This function reads a .env file and sets environment variables using either `_putenv` on Windows systems
@@ -106,6 +111,10 @@ void load_env_file(const std::string &file_path)
                 size_t len;
                 _dupenv_s(&buffer, &len, "FRED_API_KEY");
                 fred_api_key = buffer;
+            }
+            else if (key == "DRY_RUN")
+            {
+                dry_run = (value == "true" || value == "TRUE" || value == "1");
             }
         }
     }

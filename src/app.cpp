@@ -128,6 +128,11 @@ int main()
         return 1;
     }
 
+    if (!dry_run)
+    {
+        std::cout << "Bot is Live." << std::endl;
+    }
+
     load_json_file("stocks.json");
     fetch_risk_free_rate(fred_api_key);
 
@@ -141,7 +146,7 @@ int main()
 
     while (true)
     {
-        if (is_nyse_open())
+        if (is_nyse_open() || dry_run)
         {
             perform_option_interpolation(
                 current_node->ticker,
@@ -160,8 +165,8 @@ int main()
 
         current_node = current_node->next;
 
-        break;
         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+        break;
     }
 
     return 0;
