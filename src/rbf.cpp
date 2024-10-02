@@ -12,7 +12,7 @@
 RBFInterpolator::RBFInterpolator(const Eigen::VectorXd &k, const Eigen::VectorXd &y, double epsilon)
     : k_(k), y_(y), epsilon_(epsilon), smoothing_(1e-12)
 {
-    Eigen::Index n = k.size(); // Use Eigen::Index to avoid warnings
+    Eigen::Index n = k.size();
     A_ = Eigen::MatrixXd(n, n);
 
     for (Eigen::Index i = 0; i < n; ++i)
@@ -36,8 +36,8 @@ RBFInterpolator::RBFInterpolator(const Eigen::VectorXd &k, const Eigen::VectorXd
  */
 Eigen::VectorXd RBFInterpolator::interpolate(const Eigen::VectorXd &x)
 {
-    Eigen::Index n = k_.size(); // Use Eigen::Index to avoid warnings
-    Eigen::Index m = x.size();  // Use Eigen::Index to avoid warnings
+    Eigen::Index n = k_.size();
+    Eigen::Index m = x.size();
     Eigen::VectorXd result = Eigen::VectorXd::Zero(m);
 
     for (Eigen::Index i = 0; i < m; ++i)
