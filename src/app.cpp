@@ -6,6 +6,7 @@
 #include <chrono>
 #include <thread>
 #include <fstream>
+#include <ctime>
 
 #include <curl/curl.h>
 #include <Eigen/Dense>
@@ -18,18 +19,7 @@
 #include "load_json.h"
 #include "fred.h"
 #include "interpolations.h"
-
-// Function to write CSV files
-void write_csv(const std::string &filename, const Eigen::VectorXd &x_vals, const Eigen::VectorXd &y_vals)
-{
-    std::ofstream file(filename);
-    file << "Strike,IV\n";
-    for (Eigen::Index i = 0; i < x_vals.size(); ++i)
-    {
-        file << x_vals[i] << "," << y_vals[i] << "\n";
-    }
-    file.close();
-}
+#include "helpers.h"
 
 // Function for option interpolation
 void perform_option_interpolation(const std::string &ticker, const std::string &date, const std::string &option_type, double min_overpriced, double min_underpriced, int min_oi)
@@ -121,8 +111,8 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
         Eigen::VectorXd interpolated_y = interpolator(log_fine_x_normalized);
 
         // Write the x and mid iv data to CSV (only these)
-        // write_csv("original_strikes_mid_iv.csv", x_eigen, mid_iv_eigen);
-        // write_csv("interpolated_strikes_iv.csv", fine_x, interpolated_y);
+        write_csv("original_strikes_mid_iv.csv", x_eigen, mid_iv_eigen);
+        write_csv("interpolated_strikes_iv.csv", fine_x, interpolated_y);
 
         std::cout << "Data written to CSV files successfully." << std::endl;
     }
@@ -151,13 +141,22 @@ int main()
 
     while (true)
     {
-        perform_option_interpolation(
-            current_node->ticker,
-            current_node->date,
-            current_node->option_type,
-            std::stod(current_node->min_overpriced),
-            std::stod(current_node->min_underpriced),
-            std::stoi(current_node->min_oi));
+        if (is_nyse_open())
+        {
+            perform_option_interpolation(
+                current_node->ticker,
+                current_node->date,
+                current_node->option_type,
+                std::stod(current_node->min_overpriced),
+                std::stod(current_node->min_underpriced),
+                std::stoi(current_node->min_oi));
+
+            current_node = current_node->next;
+        }
+        else
+        {
+            std::cout << "NYSE is currently closed." << std::endl;
+        }
 
         current_node = current_node->next;
 
