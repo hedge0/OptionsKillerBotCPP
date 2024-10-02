@@ -17,34 +17,38 @@ void write_csv(const std::string &filename, const Eigen::VectorXd &x_vals, const
     file.close();
 }
 
-// Function to check if NYSE is open
+/**
+ * @brief Check if the New York Stock Exchange (NYSE) is currently open.
+ *
+ * This function checks if the current time falls within the trading hours
+ * of the NYSE, which operates Monday through Friday from 9:30 AM to 3:45 PM EST.
+ * It takes into account the current day of the week to exclude weekends
+ * (Saturday and Sunday), and it considers both the opening and closing times.
+ *
+ * @return bool True if the NYSE is currently open, false otherwise.
+ */
 bool is_nyse_open()
 {
-    // Get the current time
     auto now = std::chrono::system_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
 
     std::tm local_time;
     localtime_s(&local_time, &now_c);
 
-    // NYSE operates Monday - Friday from 9:30 AM to 4:00 PM EST
     int current_hour = local_time.tm_hour;
     int current_minute = local_time.tm_min;
     int current_day_of_week = local_time.tm_wday;
 
-    // If today is Saturday (6) or Sunday (0), NYSE is closed
     if (current_day_of_week == 0 || current_day_of_week == 6)
     {
         return false;
     }
 
-    // NYSE opens at 9:30 AM and closes at 4:00 PM
     int open_hour = 9;
     int open_minute = 30;
-    int close_hour = 16;
-    int close_minute = 0;
+    int close_hour = 15;
+    int close_minute = 45;
 
-    // Check if current time is within the NYSE open hours
     if ((current_hour > open_hour || (current_hour == open_hour && current_minute >= open_minute)) &&
         (current_hour < close_hour || (current_hour == close_hour && current_minute < close_minute)))
     {
