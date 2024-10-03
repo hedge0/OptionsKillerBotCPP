@@ -3,19 +3,25 @@
 
 #include <Eigen/Dense>
 #include <functional>
-#include <utility>
+#include <string>
+#include <vector>
 
-// Function to compute the objective function
-double objective_function(const Eigen::VectorXd &params, const Eigen::VectorXd &k, const Eigen::VectorXd &y_mid);
+struct MinimizeResult
+{
+    Eigen::VectorXd x;
+    double fun;
+    int nfev;
+    int nit;
+    int status;
+    std::string message;
+};
 
-// L-BFGS-B minimization function
-std::pair<Eigen::VectorXd, double> minimize_lbfgsb(
-    const std::function<double(const Eigen::VectorXd &)> &func,
-    Eigen::VectorXd &x0,
-    Eigen::VectorXd &lb,
-    Eigen::VectorXd &ub,
-    int max_iter = 15000,
-    double pgtol = 1e-5,
-    double factr = 1e7);
+MinimizeResult minimize(
+    const std::function<double(const Eigen::VectorXd &, Eigen::VectorXd &)> &func_grad,
+    const Eigen::VectorXd &x0,
+    const std::vector<std::pair<double, double>> &bounds,
+    int maxiter = 15000,
+    double ftol = 1e-8,
+    double gtol = 1e-5);
 
-#endif // MINIMIZE_H
+#endif
