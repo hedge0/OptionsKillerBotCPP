@@ -178,11 +178,18 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
     }
 }
 
+/**
+ * @brief Entry point of the application.
+ *
+ * Loads environment variables, initializes data, and runs the option interpolation loop.
+ *
+ * @return int Exit status code.
+ */
 int main()
 {
     load_env_file(".env");
 
-    if (!schwab_api_key || !schwab_secret || !callback_url || !account_hash || !fred_api_key)
+    if (schwab_api_key.empty() || schwab_secret.empty() || callback_url.empty() || account_hash.empty() || fred_api_key.empty())
     {
         std::cerr << "Error: One or more environment variables are missing." << std::endl;
         return 1;
@@ -226,7 +233,7 @@ int main()
 
         current_node = current_node->next;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(time_to_rest));
         break;
     }
 

@@ -8,27 +8,27 @@
 /**
  * @brief Global variable to store the Schwab API key.
  */
-const char *schwab_api_key = nullptr;
+std::string schwab_api_key;
 
 /**
  * @brief Global variable to store the Schwab secret.
  */
-const char *schwab_secret = nullptr;
+std::string schwab_secret;
 
 /**
  * @brief Global variable to store the callback URL for Schwab authentication.
  */
-const char *callback_url = nullptr;
+std::string callback_url;
 
 /**
  * @brief Global variable to store the account hash for Schwab.
  */
-const char *account_hash = nullptr;
+std::string account_hash;
 
 /**
  * @brief Global variable to store the FRED API key.
  */
-const char *fred_api_key = nullptr;
+std::string fred_api_key;
 
 /**
  * @brief Global variable to store the DRY_RUN flag.
@@ -36,11 +36,15 @@ const char *fred_api_key = nullptr;
 bool dry_run = true;
 
 /**
+ * @brief Global variable to store the TIME_TO_REST value.
+ */
+int time_to_rest = 100; // Default value in milliseconds
+
+/**
  * @brief Loads environment variables from a .env file.
  *
- * This function reads a .env file and sets environment variables using either `_putenv` on Windows systems
- * or `setenv` on Unix-based systems. It supports comment lines (starting with '#') and trims whitespace
- * around keys and values.
+ * This function reads a .env file and sets global variables based on the key-value pairs.
+ * It supports comment lines (starting with '#') and trims whitespace around keys and values.
  *
  * @param file_path The path to the .env file to be loaded.
  */
@@ -64,57 +68,45 @@ void load_env_file(const std::string &file_path)
 
         if (std::getline(ss, key, '=') && std::getline(ss, value))
         {
+            key.erase(0, key.find_first_not_of(" \t\n\r\f\v"));
             key.erase(key.find_last_not_of(" \t\n\r\f\v") + 1);
+            value.erase(0, value.find_first_not_of(" \t\n\r\f\v"));
             value.erase(value.find_last_not_of(" \t\n\r\f\v") + 1);
 
-            std::string env_var = key + "=" + value;
-
-#ifdef _WIN32
-            // For Windows, use _putenv
-            _putenv(env_var.c_str());
-#else
-            // For Unix/Linux/Mac systems, use setenv
-            setenv(key.c_str(), value.c_str(), 1);
-#endif
-            // Safely retrieve environment variables using _dupenv_s
             if (key == "SCHWAB_API_KEY")
             {
-                char *buffer = nullptr;
-                size_t len;
-                _dupenv_s(&buffer, &len, "SCHWAB_API_KEY");
-                schwab_api_key = buffer;
+                schwab_api_key = value;
             }
             else if (key == "SCHWAB_SECRET")
             {
-                char *buffer = nullptr;
-                size_t len;
-                _dupenv_s(&buffer, &len, "SCHWAB_SECRET");
-                schwab_secret = buffer;
+                schwab_secret = value;
             }
             else if (key == "SCHWAB_CALLBACK_URL")
             {
-                char *buffer = nullptr;
-                size_t len;
-                _dupenv_s(&buffer, &len, "SCHWAB_CALLBACK_URL");
-                callback_url = buffer;
+                callback_url = value;
             }
             else if (key == "SCHWAB_ACCOUNT_HASH")
             {
-                char *buffer = nullptr;
-                size_t len;
-                _dupenv_s(&buffer, &len, "SCHWAB_ACCOUNT_HASH");
-                account_hash = buffer;
+                account_hash = value;
             }
             else if (key == "FRED_API_KEY")
             {
-                char *buffer = nullptr;
-                size_t len;
-                _dupenv_s(&buffer, &len, "FRED_API_KEY");
-                fred_api_key = buffer;
+                fred_api_key = value;
             }
             else if (key == "DRY_RUN")
             {
                 dry_run = (value == "true" || value == "TRUE" || value == "1");
+            }
+            else if (key == "TIME_TO_REST")
+            {
+                try
+                {
+                    time_to_rest = std::stoi(value);
+                }
+                catch (const std::exception &)
+                {
+                    std::cerr << "Invalid TIME_TO_REST value: " << value << ". Using default value." << std::endl;
+                }
             }
         }
     }
