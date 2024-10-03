@@ -142,7 +142,7 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
 
         if (filtered_x_eigen.size() >= 2)
         {
-            std::vector<double> mispricings;
+            Eigen::VectorXd mispricings(valid_indices.size());
 
             for (Eigen::Index i = 0; i < filtered_x_eigen.size(); ++i)
             {
@@ -156,7 +156,7 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
                 double option_price = barone_adesi_whaley_american_option_price(S, strike, T, risk_free_rate, interpolated_iv, q, option_type);
                 double diff_price = mid_value - option_price;
 
-                mispricings.push_back(diff_price);
+                mispricings[i] = diff_price;
             }
 
             for (Eigen::Index i = 0; i < filtered_x_eigen.size(); ++i)
