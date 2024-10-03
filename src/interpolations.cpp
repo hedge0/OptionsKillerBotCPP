@@ -1,8 +1,10 @@
+#include <iostream>
+#include <functional>
+#include <algorithm>
 #include <Eigen/Dense>
 #include "rbf.h"
 #include "interpolations.h"
-#include <functional>
-#include <algorithm>
+#include "minimize.h"
 
 /**
  * @brief Function for RBF Interpolation model.
@@ -72,4 +74,30 @@ double objective_function(const Eigen::VectorXd &params, const Eigen::VectorXd &
     Eigen::VectorXd weighted_residuals = weights.array() * residuals.array().square();
 
     return weighted_residuals.sum();
+}
+
+// Fit model for RFV only using L-BFGS-B
+Eigen::VectorXd fit_model(const Eigen::VectorXd &x, const Eigen::VectorXd &y_mid, const Eigen::VectorXd &y_bid, const Eigen::VectorXd &y_ask)
+{
+    Eigen::VectorXd k = x.array().log(); // log-moneyness
+    Eigen::VectorXd initial_guess(5);
+    initial_guess << 0.2, 0.3, 0.1, 0.2, 0.1;
+
+    Eigen::VectorXd lb = Eigen::VectorXd::Constant(5, -std::numeric_limits<double>::infinity());
+    Eigen::VectorXd ub = Eigen::VectorXd::Constant(5, std::numeric_limits<double>::infinity());
+
+    auto obj_func = [&](const Eigen::VectorXd &params)
+    {
+        Eigen::VectorXd residuals(k.size());
+        for (int i = 0; i < k.size(); ++i)
+        {
+            // Apply RFV model element-wise to each value of k and compute residuals
+            residuals[i] = rfv_model(k[i], params) - y_mid[i];
+        }
+        return residuals.squaredNorm(); // Sum of squares of residuals
+    };
+
+    auto [best_params, final_value] = minimize_lbfgsb(obj_func, initial_guess, lb, ub);
+
+    return best_params;
 }

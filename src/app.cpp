@@ -107,11 +107,13 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
 
         // RBF Model
         auto interpolator = rbf_model(log_x_normalized_eigen, mid_iv_eigen, 0.5);
+        Eigen::VectorXd rfv_params = fit_model(x_normalized_eigen, mid_iv_eigen, bid_iv_eigen, ask_iv_eigen);
+
         Eigen::VectorXd fine_x_normalized = Eigen::VectorXd::LinSpaced(800, x_normalized_eigen.minCoeff(), x_normalized_eigen.maxCoeff());
         Eigen::VectorXd log_fine_x_normalized = fine_x_normalized.array().log();
-        Eigen::VectorXd interpolated_y = interpolator(log_fine_x_normalized);
+        Eigen::VectorXd rbf_interpolated_y = interpolator(log_fine_x_normalized);
 
-        Eigen::VectorXd fine_x = Eigen::VectorXd::LinSpaced(800, x_eigen.minCoeff(), x_eigen.maxCoeff());
+        Eigen::VectorXd interpolated_y = 1.0 * rbf_interpolated_y;
 
         std::vector<Eigen::Index> valid_indices;
         for (Eigen::Index i = 0; i < open_interest_eigen.size(); ++i)
@@ -121,6 +123,8 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
                 valid_indices.push_back(i);
             }
         }
+
+        Eigen::VectorXd fine_x = Eigen::VectorXd::LinSpaced(800, x_eigen.minCoeff(), x_eigen.maxCoeff());
 
         Eigen::VectorXd filtered_x_eigen(valid_indices.size());
         Eigen::VectorXd filtered_mid_iv_eigen(valid_indices.size());
