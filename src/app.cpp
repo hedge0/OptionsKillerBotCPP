@@ -231,8 +231,6 @@ int main()
             break;
         }
 
-        current_node = current_node->next;
-
         std::this_thread::sleep_for(std::chrono::milliseconds(time_to_rest));
         break;
     }
