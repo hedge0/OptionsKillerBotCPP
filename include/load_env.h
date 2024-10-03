@@ -3,12 +3,13 @@
 
 #include <string>
 
-extern const char *schwab_api_key;
-extern const char *schwab_secret;
-extern const char *callback_url;
-extern const char *account_hash;
-extern const char *fred_api_key;
+extern std::string schwab_api_key;
+extern std::string schwab_secret;
+extern std::string callback_url;
+extern std::string account_hash;
+extern std::string fred_api_key;
 extern bool dry_run;
+extern int time_to_rest;
 
 void load_env_file(const std::string &file_path);
 
