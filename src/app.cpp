@@ -80,6 +80,7 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
         Eigen::VectorXd bid_iv_eigen(filtered_strikes.size());
         Eigen::VectorXd ask_iv_eigen(filtered_strikes.size());
         Eigen::VectorXd open_interest_eigen(filtered_strikes.size());
+        Eigen::VectorXd mid_eigen(filtered_strikes.size());
 
         for (size_t i = 0; i < filtered_strikes.size(); ++i)
         {
@@ -88,6 +89,7 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
             bid_iv_eigen[i] = filtered_data[filtered_strikes[i]].bid_IV;
             ask_iv_eigen[i] = filtered_data[filtered_strikes[i]].ask_IV;
             open_interest_eigen[i] = filtered_data[filtered_strikes[i]].open_interest;
+            mid_eigen[i] = filtered_data[filtered_strikes[i]].mid;
         }
 
         double x_min = x_eigen.minCoeff();
@@ -125,6 +127,7 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
         Eigen::VectorXd filtered_bid_iv_eigen(valid_indices.size());
         Eigen::VectorXd filtered_ask_iv_eigen(valid_indices.size());
         Eigen::VectorXd filtered_open_interest_eigen(valid_indices.size());
+        Eigen::VectorXd filtered_mid_eigen(valid_indices.size());
 
         for (Eigen::Index i = 0; i < static_cast<Eigen::Index>(valid_indices.size()); ++i)
         {
@@ -134,11 +137,35 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
             filtered_bid_iv_eigen[i] = bid_iv_eigen[idx];
             filtered_ask_iv_eigen[i] = ask_iv_eigen[idx];
             filtered_open_interest_eigen[i] = open_interest_eigen[idx];
+            filtered_mid_eigen[i] = mid_eigen[idx];
         }
 
         if (filtered_x_eigen.size() >= 2)
         {
-            // Write the x and mid iv data to CSV (only these)
+            std::vector<double> mispricings;
+
+            for (Eigen::Index i = 0; i < filtered_x_eigen.size(); ++i)
+            {
+                double strike = filtered_x_eigen[i];
+                Eigen::VectorXd diff = (fine_x.array() - strike).abs();
+                Eigen::Index closest_index;
+                diff.minCoeff(&closest_index);
+
+                double interpolated_iv = interpolated_y[closest_index];
+                double mid_value = filtered_mid_eigen[i];
+                double option_price = barone_adesi_whaley_american_option_price(S, strike, T, risk_free_rate, interpolated_iv, q, option_type);
+                double diff_price = mid_value - option_price;
+
+                mispricings.push_back(diff_price);
+            }
+
+            for (Eigen::Index i = 0; i < filtered_x_eigen.size(); ++i)
+            {
+                std::cout << "Strike: " << filtered_x_eigen[i]
+                          << ", Mid Price: " << filtered_mid_eigen[i]
+                          << ", Mispricing: " << mispricings[i] << std::endl;
+            }
+
             write_csv("original_strikes_mid_iv.csv", filtered_x_eigen, filtered_mid_iv_eigen);
             write_csv("interpolated_strikes_iv.csv", fine_x, interpolated_y);
 
