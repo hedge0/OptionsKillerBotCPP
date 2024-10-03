@@ -105,15 +105,15 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
 
         Eigen::VectorXd log_x_normalized_eigen = x_normalized_eigen.array().log();
 
-        // RBF Model
         auto interpolator = rbf_model(log_x_normalized_eigen, mid_iv_eigen, 0.5);
         Eigen::VectorXd rfv_params = fit_model(x_normalized_eigen, mid_iv_eigen, bid_iv_eigen, ask_iv_eigen);
 
         Eigen::VectorXd fine_x_normalized = Eigen::VectorXd::LinSpaced(800, x_normalized_eigen.minCoeff(), x_normalized_eigen.maxCoeff());
         Eigen::VectorXd log_fine_x_normalized = fine_x_normalized.array().log();
         Eigen::VectorXd rbf_interpolated_y = interpolator(log_fine_x_normalized);
+        Eigen::VectorXd rfv_interpolated_y = rfv_model(log_fine_x_normalized, rfv_params);
 
-        Eigen::VectorXd interpolated_y = 1.0 * rbf_interpolated_y;
+        Eigen::VectorXd interpolated_y = 0.75 * rfv_interpolated_y + 0.25 * rbf_interpolated_y;
 
         std::vector<Eigen::Index> valid_indices;
         for (Eigen::Index i = 0; i < open_interest_eigen.size(); ++i)

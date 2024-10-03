@@ -1,20 +1,23 @@
+#include "interpolations.h"
+#include "minimize.h"
 #include <iostream>
 #include <functional>
 #include <algorithm>
-#include <Eigen/Dense>
+#include <limits>
 #include "rbf.h"
-#include "interpolations.h"
-#include "minimize.h"
 
 /**
- * @brief Function for RBF Interpolation model.
+ * @brief Creates a radial basis function (RBF) model based on the given data.
  *
- * @param k Vector of input points for interpolation (log-moneyness).
- * @param y Corresponding values (implied volatilities).
- * @param epsilon Regularization parameter for the RBF kernel. Defaults to computed value if not provided.
- * @return std::function<Eigen::VectorXd(const Eigen::VectorXd &)> Lambda function that evaluates interpolated values.
+ * @param k Input vector representing the independent variable.
+ * @param y Output vector representing the dependent variable.
+ * @param epsilon Shape parameter for the RBF. If non-positive, it will be computed automatically.
+ * @return A function that takes an Eigen::VectorXd and returns the interpolated Eigen::VectorXd.
  */
-std::function<Eigen::VectorXd(const Eigen::VectorXd &)> rbf_model(const Eigen::VectorXd &k, const Eigen::VectorXd &y, double epsilon)
+std::function<Eigen::VectorXd(const Eigen::VectorXd &)> rbf_model(
+    const Eigen::VectorXd &k,
+    const Eigen::VectorXd &y,
+    double epsilon)
 {
     if (epsilon <= 0)
     {
@@ -32,72 +35,107 @@ std::function<Eigen::VectorXd(const Eigen::VectorXd &)> rbf_model(const Eigen::V
 }
 
 /**
- * @brief RFV Model function for implied volatility fitting.
+ * @brief Computes the Rational Function Volatility (RFV) model values for the given parameters.
  *
- * @param k Log-moneyness of the option.
- * @param params Parameters [a, b, c, d, e] for the RFV model.
- * @return double The calculated RFV model value for the given log-moneyness.
+ * @param k Log-moneyness vector.
+ * @param params Parameter vector [a, b, c, d, e] for the RFV model.
+ * @return Eigen::VectorXd The computed RFV model values.
  */
-double rfv_model(double k, const Eigen::VectorXd &params)
+Eigen::VectorXd rfv_model(const Eigen::VectorXd &k, const Eigen::VectorXd &params)
 {
-    double a = params[0];
-    double b = params[1];
-    double c = params[2];
-    double d = params[3];
-    double e = params[4];
+    assert(params.size() == 5 && "Params vector must have 5 elements [a, b, c, d, e]");
 
-    return (a + b * k + c * k * k) / (1 + d * k + e * k * k);
+    double a = params(0);
+    double b = params(1);
+    double c = params(2);
+    double d = params(3);
+    double e = params(4);
+
+    Eigen::ArrayXd k_array = k.array();
+
+    Eigen::ArrayXd numerator = a + b * k_array + c * k_array.square();
+    Eigen::ArrayXd denominator = 1.0 + d * k_array + e * k_array.square();
+
+    return numerator / denominator;
 }
 
 /**
- * @brief Objective function to minimize during model fitting (WLS method).
+ * @brief Objective function for optimization; computes the weighted sum of squared residuals.
  *
- * @param params Vector of model parameters.
- * @param k Vector of log-moneyness.
- * @param y_mid Vector of mid prices of the options.
- * @param y_bid Vector of bid prices of the options.
- * @param y_ask Vector of ask prices of the options.
- * @return double The calculated objective value (WLS).
+ * @param params Parameter vector for the model.
+ * @param k Log-moneyness vector.
+ * @param y_mid Mid values of the dependent variable.
+ * @param y_bid Bid values of the dependent variable.
+ * @param y_ask Ask values of the dependent variable.
+ * @return double The weighted sum of squared residuals.
  */
-double objective_function(const Eigen::VectorXd &params, const Eigen::VectorXd &k, const Eigen::VectorXd &y_mid, const Eigen::VectorXd &y_bid, const Eigen::VectorXd &y_ask)
+double objective_function(
+    const Eigen::VectorXd &params,
+    const Eigen::VectorXd &k,
+    const Eigen::VectorXd &y_mid,
+    const Eigen::VectorXd &y_bid,
+    const Eigen::VectorXd &y_ask)
 {
     Eigen::VectorXd spread = y_ask - y_bid;
     double epsilon = 1e-8;
-    Eigen::VectorXd weights = 1.0 / (spread.array() + epsilon);
-
-    Eigen::VectorXd residuals(k.size());
-    for (int i = 0; i < k.size(); ++i)
-    {
-        residuals[i] = rfv_model(k[i], params) - y_mid[i];
-    }
-
-    Eigen::VectorXd weighted_residuals = weights.array() * residuals.array().square();
+    Eigen::ArrayXd weights = 1.0 / (spread.array() + epsilon);
+    Eigen::VectorXd model_values = rfv_model(k, params);
+    Eigen::VectorXd residuals = model_values - y_mid;
+    Eigen::ArrayXd weighted_residuals = weights * residuals.array().square();
 
     return weighted_residuals.sum();
 }
 
-// Fit model for RFV only using L-BFGS-B
-Eigen::VectorXd fit_model(const Eigen::VectorXd &x, const Eigen::VectorXd &y_mid, const Eigen::VectorXd &y_bid, const Eigen::VectorXd &y_ask)
+/**
+ * @brief Fits the RFV model to the data by minimizing the objective function.
+ *
+ * @param x Independent variable data.
+ * @param y_mid Mid values of the dependent variable.
+ * @param y_bid Bid values of the dependent variable.
+ * @param y_ask Ask values of the dependent variable.
+ * @return Eigen::VectorXd The optimized parameters vector.
+ */
+Eigen::VectorXd fit_model(
+    const Eigen::VectorXd &x,
+    const Eigen::VectorXd &y_mid,
+    const Eigen::VectorXd &y_bid,
+    const Eigen::VectorXd &y_ask)
 {
-    Eigen::VectorXd k = x.array().log(); // log-moneyness
+    Eigen::VectorXd k = x.array().log();
+
     Eigen::VectorXd initial_guess(5);
     initial_guess << 0.2, 0.3, 0.1, 0.2, 0.1;
 
-    Eigen::VectorXd lb = Eigen::VectorXd::Constant(5, -std::numeric_limits<double>::infinity());
-    Eigen::VectorXd ub = Eigen::VectorXd::Constant(5, std::numeric_limits<double>::infinity());
+    std::vector<std::pair<double, double>> bounds(
+        5, std::make_pair(
+               -std::numeric_limits<double>::infinity(),
+               std::numeric_limits<double>::infinity()));
 
-    auto obj_func = [&](const Eigen::VectorXd &params)
+    auto func_grad = [&k, &y_mid, &y_bid, &y_ask](
+                         const Eigen::VectorXd &params,
+                         Eigen::VectorXd &grad) -> double
     {
-        Eigen::VectorXd residuals(k.size());
-        for (int i = 0; i < k.size(); ++i)
+        double f = objective_function(params, k, y_mid, y_bid, y_ask);
+
+        double epsilon = 1e-8;
+        Eigen::Index n_params = params.size();
+        grad = Eigen::VectorXd(n_params);
+        for (Eigen::Index i = 0; i < n_params; ++i)
         {
-            // Apply RFV model element-wise to each value of k and compute residuals
-            residuals[i] = rfv_model(k[i], params) - y_mid[i];
+            Eigen::VectorXd params_eps = params;
+            params_eps(i) += epsilon;
+            double f_eps = objective_function(params_eps, k, y_mid, y_bid, y_ask);
+            grad(i) = (f_eps - f) / epsilon;
         }
-        return residuals.squaredNorm(); // Sum of squares of residuals
+        return f;
     };
 
-    auto [best_params, final_value] = minimize_lbfgsb(obj_func, initial_guess, lb, ub);
+    MinimizeResult result = minimize(func_grad, initial_guess, bounds);
 
-    return best_params;
+    if (result.status != 0)
+    {
+        std::cerr << "Optimization failed: " << result.message << std::endl;
+    }
+
+    return result.x;
 }

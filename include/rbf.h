@@ -6,7 +6,10 @@
 class RBFInterpolator
 {
 public:
-    RBFInterpolator(const Eigen::VectorXd &k, const Eigen::VectorXd &y, double epsilon);
+    RBFInterpolator(
+        const Eigen::VectorXd &k,
+        const Eigen::VectorXd &y,
+        double epsilon);
     Eigen::VectorXd interpolate(const Eigen::VectorXd &x);
 
 private:
