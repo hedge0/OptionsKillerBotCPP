@@ -115,6 +115,10 @@ void perform_option_interpolation(const std::string &ticker, const std::string &
 
         Eigen::VectorXd interpolated_y = 0.75 * rfv_interpolated_y + 0.25 * rbf_interpolated_y;
 
+        Eigen::VectorXd y_pred = interp1d(x_normalized_eigen, fine_x_normalized, interpolated_y);
+        double rmse = calculate_rmse(mid_iv_eigen, y_pred);
+        std::cout << "RMSE of the fit: " << rmse << std::endl;
+
         std::vector<Eigen::Index> valid_indices;
         for (Eigen::Index i = 0; i < open_interest_eigen.size(); ++i)
         {
