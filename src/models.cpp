@@ -49,7 +49,7 @@ double normal_cdf(double x)
  * @param option_type Type of option ('calls' or 'puts'). Defaults to 'calls'.
  * @return double The calculated option price.
  */
-double barone_adesi_whaley_american_option_price(double S, double K, double T, double r, double sigma, double q = 0.0, const std::string &option_type = "calls")
+inline double barone_adesi_whaley_american_option_price(double S, double K, double T, double r, double sigma, double q = 0.0, const std::string &option_type = "calls")
 {
     double M = 2 * (r - q) / (sigma * sigma);
     double n = 2 * (r - q - 0.5 * sigma * sigma) / (sigma * sigma);

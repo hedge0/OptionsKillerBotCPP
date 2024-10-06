@@ -14,7 +14,7 @@ double calculate_implied_volatility_baw(
     int max_iterations = 100,
     double tolerance = 1e-8);
 
-double barone_adesi_whaley_american_option_price(
+inline double barone_adesi_whaley_american_option_price(
     double S,
     double K,
     double T,
