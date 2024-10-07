@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 
+# Set the vcpkg toolchain file path
+set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+
 # Project name and version
 project(OptionsKillerBotCPP VERSION 1.0 LANGUAGES CXX)
 
@@ -12,15 +15,26 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -march=native -flto -fomit-frame-pointer -ffast-math")
 endif()
 
+include(FetchContent)
+
+FetchContent_Declare(
+  jsonifier
+  GIT_REPOSITORY https://github.com/realtimechris/jsonifier.git
+  GIT_TAG dev
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(jsonifier)
+
 # Set source and header directories
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 
-# Find libraries from vcpkg
-set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake")
-
-# Find dependencies (replace curl with any other dependencies)
+# Find the curl package using vcpkg
 find_package(CURL REQUIRED)
+
+find_package(OpenSSL REQUIRED)
+
+find_package(Eigen3 CONFIG REQUIRED)
 
 # Include directories
 include_directories(${INCLUDE_DIR})
@@ -32,7 +46,7 @@ file(GLOB_RECURSE SOURCES "${SRC_DIR}/*.cpp")
 add_executable(OptionsKillerBotCPP ${SOURCES})
 
 # Link the required libraries
-target_link_libraries(OptionsKillerBotCPP PRIVATE CURL::libcurl)
+target_link_libraries(OptionsKillerBotCPP PRIVATE CURL::libcurl Eigen3::Eigen Jsonifier::Jsonifier OpenSSL::SSL OpenSSL::Crypto)
 
 # Set up the output directory
 set_target_properties(OptionsKillerBotCPP PROPERTIES
